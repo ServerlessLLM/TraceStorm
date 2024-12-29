@@ -21,7 +21,10 @@ def get_args():
         "--rps", type=int, default=1, help="Requests per second"
     )
     parser.add_argument(
-        "--pattern", default="uniform", help="Pattern for generating trace"
+        "--pattern", choices=["uniform", "poisson", "random"], default="uniform", help="Pattern for generating trace"
+    )
+    parser.add_argument(
+        "--seed", type=int, default=None, help="Random seed for trace reproducibility"
     )
     parser.add_argument(
         "--duration", type=int, default=10, help="Duration in seconds"
@@ -46,7 +49,7 @@ def get_args():
 def main():
     args = get_args()
 
-    raw_trace = generate_trace(args.rps, args.pattern, args.duration)
+    raw_trace = generate_trace(args.rps, args.pattern, args.duration, args.seed)
     total_requests = len(raw_trace)
     logger.debug(f"Raw trace: {raw_trace}")
 

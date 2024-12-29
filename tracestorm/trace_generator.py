@@ -1,9 +1,10 @@
 import math
 import random
-from typing import List
+import numpy as np
+from typing import List, Optional
 
 
-def generate_trace(rps: int, pattern: str, duration: int) -> List[int]:
+def generate_trace(rps: int, pattern: str, duration: int, seed: Optional[int] = None) -> List[int]:
     """
     Generates a list of timestamps (ms) at which requests should be sent.
 
@@ -31,6 +32,9 @@ def generate_trace(rps: int, pattern: str, duration: int) -> List[int]:
     if total_requests == 0:
         return timestamps
 
+    if seed is not None:
+        np.random.seed(seed)
+        
     if pattern == "uniform":
         # Distribute requests evenly across the duration
         interval = total_duration_ms / total_requests
@@ -40,6 +44,17 @@ def generate_trace(rps: int, pattern: str, duration: int) -> List[int]:
             timestamp = min(timestamp, total_duration_ms - 1)
             timestamps.append(timestamp)
             current_time += interval
+    elif pattern == "poisson":
+        # Exponential distribution for intervals
+        rate_ms = rps / 1000
+        intervals = np.random.exponential(1 / rate_ms, total_requests)
+        current_time = 0.0
+        for i in range(total_requests):
+            timestamp = int(round(current_time))
+            timestamps.append(timestamp)
+            current_time += intervals[i]
+    elif pattern == "random":
+        timestamps = np.random.randint(0, total_duration_ms, size=total_requests).tolist()
     else:
         raise ValueError(f"Unknown pattern: {pattern}")
 
