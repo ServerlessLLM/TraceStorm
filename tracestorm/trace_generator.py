@@ -12,6 +12,7 @@ def generate_trace(rps: int, pattern: str, duration: int, seed: Optional[int] = 
         rps (int): Requests per second. Must be non-negative.
         pattern (str): Distribution pattern ('uniform', 'random', 'poisson', etc.).
         duration (int): Total duration in seconds. Must be non-negative.
+        seed (int): seed for reproducibility of 'poisson' and 'random' patterns
 
     Returns:
         List[int]: Sorted list of timestamps in milliseconds.
