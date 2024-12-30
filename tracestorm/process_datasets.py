@@ -1,29 +1,32 @@
-import pandas as pd
 import json
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
+
+import pandas as pd
 
 from tracestorm.logger import init_logger
 
 logger = init_logger(__name__)
 
+
 def get_datasets(
     datasets_config_file: str,
 ) -> Tuple[List[Tuple[str, List[str], int, int]], Optional[str]]:
-    
     # Load datasets configuration file
     try:
-        with open(datasets_config_file, 'r') as f:
+        with open(datasets_config_file, "r") as f:
             datasets_config = json.load(f)
     except FileNotFoundError:
-        logger.error(f"Error: Configuration file '{datasets_config_file}' not found")
+        logger.error(
+            f"Error: Configuration file '{datasets_config_file}' not found"
+        )
         return [], None
     except Exception as e:
         logger.error(f"Error reading '{datasets_config_file}': {e}")
         return [], None
-    
+
     # Strategy to sort the provided datasets
     sort_strategy = datasets_config.pop("sort", "random")
-    
+
     # List to store info for each dataset
     datasets = []
 
@@ -35,9 +38,11 @@ def get_datasets(
         except ValueError:
             logger.error(f"Invalid 'select_ratio' for '{name}'")
             continue
-        
+
         if not file_path or not field:
-            logger.error(f"Missing required 'file_path' or 'field' for '{name}'")
+            logger.error(
+                f"Missing required 'file_path' or 'field' for '{name}'"
+            )
             continue
 
         try:
@@ -48,15 +53,17 @@ def get_datasets(
         except Exception as e:
             logger.error(f"Error reading '{file_path}': {e}")
             continue
-        
+
         if field not in df.columns:
             logger.error(f"Error: Column '{field}' not found in '{file_path}'.")
             continue
-        
+
         samples = df[field].tolist()
-        
+
         # Add the dataset information (name, samples, ratio, number of samples)
         datasets.append((name, samples, ratio, len(samples)))
-        logger.info(f"{name} loaded with {len(samples)} samples, selection ratio = {ratio}")
-    
+        logger.info(
+            f"{name} loaded with {len(samples)} samples, selection ratio = {ratio}"
+        )
+
     return datasets, sort_strategy

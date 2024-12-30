@@ -3,12 +3,12 @@ import multiprocessing
 import os
 
 from tracestorm.logger import init_logger
+from tracestorm.process_datasets import get_datasets
 from tracestorm.request_generator import generate_request
 from tracestorm.result_analyzer import ResultAnalyzer
 from tracestorm.trace_generator import generate_trace
 from tracestorm.trace_player import play
 from tracestorm.utils import round_robin_shard
-from tracestorm.process_datasets import get_datasets
 
 logger = init_logger(__name__)
 
@@ -22,10 +22,16 @@ def get_args():
         "--rps", type=int, default=1, help="Requests per second"
     )
     parser.add_argument(
-        "--pattern", choices=["uniform", "poisson", "random"], default="uniform", help="Pattern for generating trace"
+        "--pattern",
+        choices=["uniform", "poisson", "random"],
+        default="uniform",
+        help="Pattern for generating trace",
     )
     parser.add_argument(
-        "--seed", type=int, default=None, help="Random seed for trace reproducibility"
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for trace reproducibility",
     )
     parser.add_argument(
         "--duration", type=int, default=10, help="Duration in seconds"
@@ -44,9 +50,7 @@ def get_args():
         help="OpenAI API Key",
     )
     parser.add_argument(
-        "--datasets",
-        default=None,
-        help="Config file for datasets"
+        "--datasets", default=None, help="Config file for datasets"
     )
 
     return parser.parse_args()
@@ -63,8 +67,10 @@ def main():
     if args.datasets:
         datasets, sort_strategy = get_datasets(args.datasets)
         logger.info(f"Loaded datasets with sort strategy: {sort_strategy}")
-        
-    requests = generate_request(args.model, total_requests, datasets, sort_strategy)
+
+    requests = generate_request(
+        args.model, total_requests, datasets, sort_strategy
+    )
     logger.debug(f"Requests: {requests}")
 
     ipc_queue = multiprocessing.Queue()
