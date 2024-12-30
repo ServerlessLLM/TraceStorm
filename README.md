@@ -19,5 +19,5 @@ vllm serve Qwen/Qwen2.5-1.5B-Instruct
 Run the load test:
 
 ```bash
-python -m tracestorm.main --model "Qwen/Qwen2.5-1.5B-Instruct"
+tracestorm --model "Qwen/Qwen2.5-1.5B-Instruct"
 ```
