@@ -9,6 +9,7 @@ from tracestorm.result_analyzer import ResultAnalyzer
 from tracestorm.trace_generator import generate_trace
 from tracestorm.trace_player import play
 from tracestorm.utils import round_robin_shard
+from tracestorm.process_datasets import get_datasets
 
 logger = init_logger(__name__)
 
@@ -19,6 +20,7 @@ logger = init_logger(__name__)
 @click.option(
     "--pattern", default="uniform", help="Pattern for generating trace"
 )
+@click.option("--seed", type=int, default=None, help="Random seed for reproducibility of trace patterns")
 @click.option("--duration", type=int, default=10, help="Duration in seconds")
 @click.option(
     "--subprocesses", type=int, default=1, help="Number of subprocesses"
@@ -35,12 +37,22 @@ logger = init_logger(__name__)
     default=lambda: os.environ.get("OPENAI_API_KEY", "none"),
     help="OpenAI API Key",
 )
-def main(model, rps, pattern, duration, subprocesses, base_url, api_key):
+@click.option(
+    "--datasets",
+    default=None,
+    help="Config file for datasets"
+)
+def main(model, rps, pattern, seed, duration, subprocesses, base_url, api_key, datasets):
     raw_trace = generate_trace(rps, pattern, duration)
     total_requests = len(raw_trace)
     logger.debug(f"Raw trace: {raw_trace}")
 
-    requests = generate_request(model, total_requests)
+    sort_strategy = None
+    if datasets:
+        datasets, sort_strategy = get_datasets(datasets)
+        logger.info(f"Loaded datasets with sort strategy: {sort_strategy}")
+        
+    requests = generate_request(model, total_requests, datasets, sort_strategy)
     logger.debug(f"Requests: {requests}")
 
     ipc_queue = multiprocessing.Queue()

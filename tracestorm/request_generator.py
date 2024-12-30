@@ -12,7 +12,7 @@ def generate_request(
     requests = []
     
     # If no datasets, generate default requests
-    if datasets is None:
+    if not datasets:
         for _ in range(nums):
             requests.append(
                 {

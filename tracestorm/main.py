@@ -8,6 +8,7 @@ from tracestorm.result_analyzer import ResultAnalyzer
 from tracestorm.trace_generator import generate_trace
 from tracestorm.trace_player import play
 from tracestorm.utils import round_robin_shard
+from tracestorm.process_datasets import get_datasets
 
 logger = init_logger(__name__)
 
@@ -42,6 +43,11 @@ def get_args():
         default=os.environ.get("OPENAI_API_KEY", "none"),
         help="OpenAI API Key",
     )
+    parser.add_argument(
+        "--datasets",
+        default=None,
+        help="Config file for datasets"
+    )
 
     return parser.parse_args()
 
@@ -53,7 +59,12 @@ def main():
     total_requests = len(raw_trace)
     logger.debug(f"Raw trace: {raw_trace}")
 
-    requests = generate_request(args.model, total_requests)
+    datasets, sort_strategy = (None, None)
+    if args.datasets:
+        datasets, sort_strategy = get_datasets(args.datasets)
+        logger.info(f"Loaded datasets with sort strategy: {sort_strategy}")
+        
+    requests = generate_request(args.model, total_requests, datasets, sort_strategy)
     logger.debug(f"Requests: {requests}")
 
     ipc_queue = multiprocessing.Queue()
